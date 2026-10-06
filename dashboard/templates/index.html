@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodeAlpha IDS Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script src="{{ url_for('static', filename='chart.umd.js') }}"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6">
+        <path d="M12 2.5 4 5.5v6c0 5 3.4 8.6 8 10 4.6-1.4 8-5 8-10v-6L12 2.5Z" stroke-linejoin="round"/>
+        <path d="M9 12.2l2.1 2.1L15.3 10" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </span>
+    <div class="brand-text">
+      <h1>CodeAlpha IDS</h1>
+      <span class="brand-sub">Network Intrusion Detection — Lab Console</span>
+    </div>
+  </div>
+  <div class="controls">
+    <span class="live-indicator" id="liveIndicator">
+      <span class="live-dot"></span>
+      <span class="live-label">Monitoring</span>
+    </span>
+    <span class="last-updated" id="lastUpdated">—</span>
+    <label class="auto-refresh">
+      <input type="checkbox" id="autoRefreshToggle">
+      <span>Auto-refresh</span>
+    </label>
+    <button id="refreshBtn">Refresh</button>
+  </div>
+</header>
+
+<main>
+  <section class="cards">
+    <div class="card total">
+      <span class="value" id="totalCount">0</span>
+      <span class="label">Total Alerts</span>
+    </div>
+    <div class="card sev-critical">
+      <span class="value" id="criticalCount">0</span>
+      <span class="label">Critical</span>
+    </div>
+    <div class="card sev-high">
+      <span class="value" id="highCount">0</span>
+      <span class="label">High</span>
+    </div>
+    <div class="card sev-medium">
+      <span class="value" id="mediumCount">0</span>
+      <span class="label">Medium</span>
+    </div>
+    <div class="card sev-low">
+      <span class="value" id="lowCount">0</span>
+      <span class="label">Low</span>
+    </div>
+  </section>
+
+  <section class="panels">
+    <div class="panel wide">
+      <h2>Alerts Over Time</h2>
+      <div class="chart-wrap"><canvas id="timelineChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <h2>Top Source IPs</h2>
+      <div class="chart-wrap"><canvas id="sourcesChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <h2>Top Destination Ports</h2>
+      <div class="chart-wrap"><canvas id="portsChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <h2>Most Triggered Signatures</h2>
+      <ul id="signatureList" class="sig-list"></ul>
+    </div>
+  </section>
+
+  <section class="panel alerts-table-section">
+    <div class="table-controls">
+      <h2>Recent Alerts</h2>
+      <div class="table-filters">
+        <input type="text" id="searchInput" placeholder="Search signature or IP">
+        <select id="severityFilter">
+          <option value="">All severities</option>
+          <option value="1">Critical</option>
+          <option value="2">High</option>
+          <option value="3">Medium</option>
+          <option value="4">Low</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table id="alertsTable">
+        <thead>
+          <tr>
+            <th>Timestamp</th><th>Source</th><th>Destination</th><th>Proto</th>
+            <th>Signature</th><th>Severity</th><th>Category</th>
+          </tr>
+        </thead>
+        <tbody id="alertsTableBody"></tbody>
+      </table>
+      <p class="empty-state" id="emptyState" hidden>No alerts match this filter yet.</p>
+    </div>
+  </section>
+</main>
+
+<script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+</body>
+</html>

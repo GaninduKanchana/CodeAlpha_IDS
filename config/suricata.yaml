@@ -1,0 +1,112 @@
+# =============================================================================
+# CodeAlpha Task 4 — Suricata Configuration (Lab / Educational Use Only)
+# =============================================================================
+# This is a TRIMMED, HEAVILY-COMMENTED configuration meant to be merged into
+# (or used alongside) the full default config installed at
+# /etc/suricata/suricata.yaml. Beginners: read every comment before changing
+# anything.
+#
+# HOW TO USE THIS FILE
+# ---------------------
+# Option A (recommended for this project): point Suricata at this file
+# directly when starting it:
+#     sudo suricata -c config/suricata.yaml -i lo
+#
+# Option B: copy the relevant sections (vars, rule-files, outputs) into your
+# system's /etc/suricata/suricata.yaml.
+# =============================================================================
+
+%YAML 1.1
+---
+
+# -----------------------------------------------------------------------------
+# NETWORK VARIABLES
+# -----------------------------------------------------------------------------
+# HOME_NET describes "your" network — the systems you consider internal/trusted
+# and are protecting. In this lab, that is just your local machine.
+# EXTERNAL_NET describes everything else. We explicitly do NOT define this as
+# "any real internet range" for offensive purposes — it is only used so
+# Suricata's rule logic (which often reads like "from EXTERNAL_NET to HOME_NET")
+# has something to compare against in a lab context.
+vars:
+  address-groups:
+    HOME_NET: "[127.0.0.0/8,10.0.0.0/8,192.168.0.0/16]"
+    EXTERNAL_NET: "!$HOME_NET"
+
+  port-groups:
+    HTTP_PORTS: "80"
+    SSH_PORTS: "22"
+
+# -----------------------------------------------------------------------------
+# RULE FILES
+# -----------------------------------------------------------------------------
+# default-rule-path is where Suricata looks for rule files listed below.
+# We point it at this project's rules/ directory so the custom CodeAlpha
+# rules are loaded. (Do NOT enable any downloaded/community rulesets here
+# unless you understand and intend to run them — for this project we use
+# only our own reviewed, safe rules.)
+default-rule-path: rules
+rule-files:
+  - local.rules
+
+# -----------------------------------------------------------------------------
+# LOGGING OUTPUTS
+# -----------------------------------------------------------------------------
+# eve.json is Suricata's structured JSON event log — this is what our Python
+# parser (scripts/parse_alerts.py) reads. fast.log is a simple human-readable
+# one-line-per-alert log, useful for quickly eyeballing alerts in a terminal.
+default-log-dir: logs
+
+outputs:
+  - eve-log:
+      enabled: yes
+      filetype: regular
+      filename: eve.json
+      types:
+        - alert:
+            payload: no          # keep logs small/simple for this lab project
+            metadata: yes
+            http-body: no
+        - http:
+            extended: yes
+        - dns:
+            enabled: yes
+        - stats:
+            enabled: no
+
+  - fast:
+      enabled: yes
+      filename: fast.log
+      append: yes
+
+# -----------------------------------------------------------------------------
+# DETECTION ENGINE / RUNMODE
+# -----------------------------------------------------------------------------
+# "af-packet" is the standard high-performance capture mode on Linux. For this
+# lab we listen on the loopback interface ("lo") since all our safe test
+# traffic is sent to 127.0.0.1. If you use a lab VM pair instead, change
+# "lo" to your lab NIC name (find it with `ip a`), e.g. "eth1".
+af-packet:
+  - interface: lo
+    threads: 1
+    cluster-id: 99
+    cluster-type: cluster_flow
+    defrag: yes
+
+# How Suricata should treat unmatched/unknown traffic. "auto" is fine for a
+# lab; we are not blocking anything (IDS mode, not IPS/inline mode).
+runmode: autofp
+
+# -----------------------------------------------------------------------------
+# APP-LAYER PROTOCOLS (kept minimal for a lightweight lab setup)
+# -----------------------------------------------------------------------------
+app-layer:
+  protocols:
+    http:
+      enabled: yes
+    tls:
+      enabled: yes
+    ssh:
+      enabled: yes
+    dns:
+      enabled: yes
